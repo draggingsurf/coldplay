@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find the Couple - Memory Matching Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Page 1: Welcome & Rules */
+        .welcome-page {
+            display: block;
+            text-align: center;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .welcome-page.hidden {
+            display: none;
+        }
+
+        .game-title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-description {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .rules-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .rules-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .rules-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .rule-step {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .rule-step:hover {
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .step-description {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .free-spots-alert {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .rewards-section {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .rewards-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .reward-tiers {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .reward-tier {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tier-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .tier-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .tier-reward {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .wallet-section {
+            margin: 40px 0;
+        }
+
+        .connect-wallet-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .connect-wallet-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6);
+        }
+
+        .connect-wallet-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .wallet-status {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+        }
+
+        .wallet-connected {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+        }
+
+        .wallet-insufficient {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            border: 2px solid #f44336;
+        }
+
+        .token-requirement {
+            background: rgba(255, 193, 7, 0.1);
+            color: #FF8F00;
+            border: 2px solid #FFC107;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            margin-top: 20px;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+        }
+
+        /* Page 2: Game Interface */
+        .game-page {
+            display: none;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .game-page.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .control-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .end-session-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .disconnect-btn {
+            background: #666;
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .game-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .score-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .timer-display {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .start-game-section {
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        .start-game-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 30px 60px;
+            font-size: 2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        .start-game-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(76, 175, 80, 0.6);
+        }
+
+        .leaderboard {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard.updated {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .leaderboard-container {
+            position: relative;
+        }
+
+        .leaderboard-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-item.new-score {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            animation: scoreUpdate 1s ease-in-out;
+        }
+
+        @keyframes scoreUpdate {
+            0% {
+                transform: scale(1);
+                background: rgba(76, 175, 80, 0.2);
+            }
+            50% {
+                transform: scale(1.02);
+                background: rgba(76, 175, 80, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                background: rgba(76, 175, 80, 0.2);
+            }
+        }
+
+        .real-time-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .real-time-indicator.active {
+            opacity: 1;
+            animation: pulse 1s ease-in-out;
+        }
+
+        .status-message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #fff;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+            
+            .rules-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .reward-tiers {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Game Area Styles */
+        .game-area {
+            position: relative;
+        }
+
+        /* Stadium Game Overlay Controls */
+        .game-controls-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .control-info {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            pointer-events: auto;
+        }
+
+        .control-info p {
+            margin: 5px 0;
+        }
+
+        .game-stats {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .game-stats div {
+            margin: 8px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .music-toggle {
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .music-toggle:hover {
+            color: #FFD700;
+        }
+
+        #gameCanvas {
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: block;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .game-controls-overlay {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            #gameCanvas {
+                width: 100%;
+                height: auto;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page 1: Welcome & Rules -->
+        <div id="welcomePage" class="welcome-page">
+            <h1 class="game-title">Find the Couple</h1>
+            
+            <p class="game-description">
+                A memory-based matching game where you find hidden couples and earn points. 
+                The more you find, the higher you score — and the more you can win!
+            </p>
+
+            <div class="rules-section">
+                <h2 class="rules-title">📜 How to Play</h2>
+                
+                <div class="rules-steps">
+                    <div class="rule-step">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Connect Your Wallet</div>
+                        <div class="step-description">Connect your Solana wallet to get started</div>
+                    </div>
+                    
+                    <div class="rule-step">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Token Requirement</div>
+                        <div class="step-description">Hold $10 worth of $MATCH tokens to play</div>
+                    </div>
+                    
+                    <div class="rule-step">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Match Couples</div>
+                        <div class="step-description">Find and match hidden couples to earn points</div>
+                    </div>
+                    
+                    <div class="rule-step">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Earn Points</div>
+                        <div class="step-description">Get 10 points for each correct couple match</div>
+                    </div>
+                </div>
+
+                <div class="free-spots-alert">
+                    🔥 First 1000 players play for free! Only <span id="freeSpotsLeft">1000</span> spots left! Hurry!
+                </div>
+
+                <div class="token-requirement">
+                    💰 You need at least $10 worth of $MATCH tokens to play
+                    <br><small>Or be one of the first 1000 players!</small>
+                </div>
+            </div>
+
+            <div class="rewards-section">
+                <h2 class="rewards-title">💰 Rewards</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Top 3 players after 5 hours split 50% of the creator fee</p>
+                
+                <div class="reward-tiers">
+                    <div class="reward-tier">
+                        <div class="tier-icon">🥇</div>
+                        <div class="tier-title">First Place</div>
+                        <div class="tier-reward">Biggest share of reward pool</div>
+                    </div>
+                    
+                    <div class="reward-tier">
+                        <div class="tier-icon">🥈</div>
+                        <div class="tier-title">Second Place</div>
+                        <div class="tier-reward">Medium share</div>
+                    </div>
+                    
+                    <div class="reward-tier">
+                        <div class="tier-icon">🥉</div>
+                        <div class="tier-title">Third Place</div>
+                        <div class="tier-reward">Small share</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wallet-section">
+                <button id="connectWalletBtn" class="connect-wallet-btn">
+                    🔗 Connect Wallet
+                </button>
+                
+                <div id="walletStatus" class="wallet-status" style="display: none;"></div>
+                
+                <button id="playBtn" class="play-btn" style="display: none;">
+                    🎮 Start Playing
+                </button>
+            </div>
+        </div>
+
+        <!-- Page 2: Game Interface -->
+        <div id="gamePage" class="game-page">
+            <div class="game-header">
+                <div class="game-controls">
+                    <button id="endSessionBtn" class="control-btn end-session-btn">🔘 End Session</button>
+                    <button id="disconnectBtn" class="control-btn disconnect-btn">🔌 Disconnect Wallet</button>
+                </div>
+                
+                <div class="game-info">
+                    <div id="scoreDisplay" class="score-display">Your Score: 0</div>
+                    <div id="timerDisplay" class="timer-display">Time left: 05:00:00</div>
+                </div>
+            </div>
+
+            <div id="startGameSection" class="start-game-section">
+                <button id="startGameBtn" class="start-game-btn">🎥 Start Camera Game</button>
+            </div>
+
+            <!-- Camera Game Area -->
+            <div id="gameArea" class="game-area" style="display: none;">
+                <canvas id="gameCanvas" width="1250" height="875"></canvas>
+                <div class="game-controls-overlay">
+                    <div class="control-info">
+                        <p>🖱️ Move mouse to control camera</p>
+                        <p>🖱️ Click or press SPACE to capture couples</p>
+                        <p>⌨️ Press M to toggle music</p>
+                    </div>
+                    <div class="game-stats">
+                        <div id="score">Solana: 0</div>
+                        <div id="musicToggle" class="music-toggle">♪ ON</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="leaderboard-container">
+                <div class="leaderboard">
+                    <div class="real-time-indicator" id="realtimeIndicator">🔴 LIVE</div>
+                    <h3 class="leaderboard-title">🏆 Top 10 Players</h3>
+                    <div id="leaderboardList">
+                        <!-- Dynamic leaderboard content will be loaded here -->
+                        <div class="leaderboard-item">
+                            <span>🎮 Loading leaderboard...</span>
+                            <span>Please wait</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="statusMessage" class="status-message">
+                The game is waiting. Are you?
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <!-- Solana Web3 CDN -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    
+    <!-- Load game scripts -->
+    <script type="module" src="supabaseClient.js"></script>
+    <script type="module" src="PlayerStats.js"></script>
+    <script type="module" src="Leaderboard.js"></script>
+    <script type="module" src="GameIntegration.js"></script>
+    <script src="game.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

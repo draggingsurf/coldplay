@@ -1,0 +1,24 @@
+{
+  "name": "coldplay-canoodlers",
+  "version": "1.0.0",
+  "description": "Interactive Coldplay concert game with Solana blockchain integration",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8080",
+    "dev": "npx http-server -p 8080 -o"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.8",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-phantom": "^0.9.24",
+    "@solana/wallet-adapter-solflare": "^0.6.28",
+    "@solana/web3.js": "^1.95.2",
+    "@supabase/supabase-js": "^2.52.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": ["solana", "blockchain", "game", "supabase", "coldplay"],
+  "author": "Your Name",
+  "license": "MIT"
+}
