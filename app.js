@@ -240,11 +240,24 @@ class SecretCoupleApp {
         }, 2000);
     }
 
-    startCameraGame() {
+    async startCameraGame() {
         console.log('🎥 Starting camera game');
         
         this.gameState.gameActive = true;
-        this.gameState.score = 0;
+        
+        // Don't reset the score to 0 - instead, load the previous score if available
+        if (this.wallet && window.playerStats) {
+            try {
+                await window.playerStats.setCurrentPlayer(this.wallet.publicKey.toString());
+                const playerData = window.playerStats.getCurrentPlayerStats();
+                if (playerData && playerData.totalScore > 0) {
+                    this.gameState.score = playerData.totalScore;
+                    console.log(`📊 Loaded previous total score: ${this.gameState.score}`);
+                }
+            } catch (err) {
+                console.error('Failed to load previous score:', err);
+            }
+        }
         
         // Hide start button, show game area
         document.getElementById('startGameSection').style.display = 'none';
@@ -269,13 +282,53 @@ class SecretCoupleApp {
             if (window.stadiumGame && window.stadiumGame.init) {
                 console.log('✅ Initializing camera game');
                 
+                // First, try to load the player's previous score
+                if (this.wallet && window.playerStats) {
+                    try {
+                        await window.playerStats.setCurrentPlayer(this.wallet.publicKey.toString());
+                        const playerData = window.playerStats.getCurrentPlayerStats();
+                        if (playerData && playerData.totalScore > 0) {
+                            // Set the score in the app state
+                            this.gameState.score = playerData.totalScore;
+                            console.log(`📊 Loaded previous total score: ${this.gameState.score}`);
+                            
+                            // If the stadium game is available, set its score too
+                            if (window.stadiumGame && window.stadiumGame.setScore) {
+                                window.stadiumGame.setScore(playerData.totalScore);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Failed to load previous score:', err);
+                    }
+                }
+                
                 // Initialize the camera game
                 window.stadiumGame.init();
                 this.cameraGameInitialized = true;
                 
                 // Initialize with session if available
                 if (window.gameAPI && window.gameAPI.initializeWithSession && this.wallet) {
-                    window.gameAPI.initializeWithSession(this.wallet.id);
+                    await window.gameAPI.initializeWithSession(this.wallet.id);
+                    
+                    // After initializing with session, load the player's score from the database
+                    if (this.wallet && window.playerStats) {
+                        try {
+                            await window.playerStats.setCurrentPlayer(this.wallet.publicKey.toString());
+                            const playerData = window.playerStats.getCurrentPlayerStats();
+                            if (playerData && playerData.totalScore > 0) {
+                                // Set the score in the game API
+                                if (window.gameAPI && window.gameAPI.setScore) {
+                                    window.gameAPI.setScore(playerData.totalScore);
+                                    console.log(`📊 Set game score to previous total: ${playerData.totalScore}`);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Failed to load previous score:', err);
+                        }
+                    }
+                    
+                    // Update the score display
+                    this.updateScore();
                 }
                 
                 console.log('✅ Camera game initialized successfully');

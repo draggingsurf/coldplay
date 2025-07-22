@@ -366,4 +366,21 @@ class PlayerStats {
 // Create global player stats instance
 window.playerStats = new PlayerStats();
 
+// Add a helper function to get player's total score
+window.getPlayerTotalScore = async function(walletAddress) {
+    if (!window.playerStats || !window.playerStats.isInitialized) {
+        console.warn('PlayerStats not initialized yet');
+        return 0;
+    }
+    
+    try {
+        await window.playerStats.setCurrentPlayer(walletAddress);
+        const playerData = window.playerStats.getCurrentPlayerStats();
+        return playerData.totalScore || 0;
+    } catch (error) {
+        console.error('Failed to get player total score:', error);
+        return 0;
+    }
+};
+
 export { PlayerStats };

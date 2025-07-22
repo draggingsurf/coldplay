@@ -615,6 +615,9 @@ function gameLoop() {
 
 // Initialize game
 async function init() {
+    // Try to load previous score from localStorage first
+    loadPreviousScore();
+    
     await loadImages();
     randomizeCouplePosition();
     updateScore();
@@ -628,10 +631,60 @@ init();
 // Global session variable
 let currentGameSession = null;
 
+// Expose game state to window for external access
+window.stadiumGame = {
+    gameState: gameState,
+    init: init,
+    setScore: function(score) {
+        if (score > 0) {
+            gameState.score = score;
+            updateScore();
+            console.log(`📊 Score set to: ${score}`);
+        }
+    }
+};
+
 // Function to initialize game with a session
-function initializeWithSession(sessionId) {
+async function initializeWithSession(sessionId) {
     currentGameSession = sessionId;
-    init(); // Your existing init function
+
+    // Try to load the player's previous total score before initializing the game
+    try {
+        if (window.playerStats) {
+            // Wait for playerStats to be initialized
+            let attempts = 0;
+            while (!window.playerStats.isInitialized && attempts < 10) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            // Get the current player data if available
+            if (window.playerStats.isInitialized) {
+                // Set the current player based on the session ID
+                const { data, error } = await window.playerStats.supabase
+                    .from('players')
+                    .select('wallet_address')
+                    .eq('id', sessionId)
+                    .single();
+
+                if (data && data.wallet_address) {
+                    await window.playerStats.setCurrentPlayer(data.wallet_address);
+                    const playerData = window.playerStats.getCurrentPlayerStats();
+
+                    // Set the initial score to the player's total accumulated score
+                    if (playerData && playerData.totalScore) {
+                        gameState.score = playerData.totalScore;
+                        console.log(`📊 Loaded previous total score: ${gameState.score}`);
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Failed to load previous score:', err);
+    }
+
+    // Initialize the game with the potentially updated score
+    init();
 }
 
 // Override your existing checkCapture function
@@ -650,6 +703,9 @@ checkCapture = function () {
         gameState.score += 10;
         updateScore();
         gameState.isCapturing = true;
+        
+        // Save score to localStorage after each capture
+        saveCurrentScore();
 
         // Record in database
         if (currentGameSession) {
@@ -680,11 +736,43 @@ async function recordCaptureInDB() {
     }
 }
 
+// Load previous score from localStorage
+function loadPreviousScore() {
+    try {
+        const savedScore = localStorage.getItem('coldplayGameScore');
+        if (savedScore) {
+            const score = parseInt(savedScore, 10);
+            if (!isNaN(score) && score > 0) {
+                gameState.score = score;
+                updateScore();
+                console.log(`📊 Loaded previous score from localStorage: ${score}`);
+                return true;
+            }
+        }
+    } catch (err) {
+        console.error('Failed to load previous score from localStorage:', err);
+    }
+    return false;
+}
+
+// Save current score to localStorage
+function saveCurrentScore() {
+    try {
+        localStorage.setItem('coldplayGameScore', gameState.score.toString());
+        console.log(`📊 Saved current score to localStorage: ${gameState.score}`);
+    } catch (err) {
+        console.error('Failed to save score to localStorage:', err);
+    }
+}
+
 window.gameAPI = {
     initializeWithSession: initializeWithSession,
     endGame: async function () {
         if (currentGameSession) {
             try {
+                // Save score before ending session
+                saveCurrentScore();
+                
                 const { supabase } = await import('./supabaseClient.js');
                 await supabase.rpc('end_game_session', { session_uuid: currentGameSession });
                 currentGameSession = null;
@@ -692,5 +780,20 @@ window.gameAPI = {
                 console.error('Failed to end game session:', err);
             }
         }
-    }
+    },
+    setScore: function(score) {
+        if (typeof score === 'number' && score >= 0) {
+            gameState.score = score;
+            updateScore();
+            // Save to localStorage immediately
+            saveCurrentScore();
+            console.log(`📊 Score set to: ${score}`);
+            return true;
+        }
+        return false;
+    },
+    getScore: function() {
+        return gameState.score;
+    },
+    loadSavedScore: loadPreviousScore
 };
