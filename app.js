@@ -1,12 +1,37 @@
-// Main Application Logic for Find the Couple Game
+// Main Application Logic for SECRETCOUPLE Surveillance Game
 // Handles UI interactions, game state, and page transitions
 
-class FindTheCoupleApp {
+// Initialize Stagewise Toolbar for development
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port) {
+    console.log('🔧 Initializing Stagewise toolbar for development environment');
+    
+    // Load stagewise toolbar from CDN since local modules don't work with Python server
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.textContent = `
+        try {
+            console.log('📦 Loading Stagewise toolbar from CDN...');
+            const { initToolbar } = await import('https://unpkg.com/@stagewise/toolbar@0.6.2/dist/index.es.js');
+            
+            console.log('🚀 Initializing Stagewise toolbar...');
+            initToolbar({
+                plugins: [],
+            });
+            console.log('✅ Stagewise toolbar initialized successfully');
+        } catch (error) {
+            console.error('❌ Failed to load Stagewise toolbar:', error);
+            console.log('⚠️ Stagewise toolbar not available in this environment');
+        }
+    `;
+    document.head.appendChild(script);
+}
+
+class SecretCoupleApp {
     constructor() {
         this.currentPage = 'welcome';
         this.gameState = {
             score: 0,
-            timeLeft: 5 * 60 * 60, // 5 hours in seconds
+            timeLeft: 24 * 60 * 60, // 24 hours in seconds
             gameActive: false
         };
         this.wallet = null;
@@ -20,7 +45,7 @@ class FindTheCoupleApp {
     }
 
     async init() {
-        console.log('🎮 Initializing Find the Couple App');
+        console.log('📸 Initializing SECRETCOUPLE Surveillance System');
         
         // Wait for GameIntegration to be ready
         this.waitForGameIntegration();
@@ -31,10 +56,10 @@ class FindTheCoupleApp {
         // Update free spots display
         this.updateFreeSpots();
         
-        // Start competition timer
+        // Start surveillance timer
         this.startCompetitionTimer();
         
-        console.log('✅ App initialized successfully');
+        console.log('✅ Surveillance system online');
     }
 
     waitForGameIntegration() {
@@ -134,10 +159,10 @@ class FindTheCoupleApp {
         walletStatus.style.display = 'block';
         
         if (this.isEligible) {
-            this.showWalletStatus('✅ Wallet connected! You are eligible to play.', 'success');
+            this.showWalletStatus('✅ Surveillance access granted! Agent cleared for operation.', 'success');
             playBtn.style.display = 'inline-block';
         } else {
-            this.showWalletStatus('❌ You need $10 worth of $MATCH tokens to play.', 'error');
+            this.showWalletStatus('❌ You need $10 worth of $COUPLE tokens for surveillance access.', 'error');
             playBtn.style.display = 'none';
         }
     }
@@ -168,9 +193,9 @@ class FindTheCoupleApp {
         gamePage.classList.add('active');
         
         this.currentPage = 'game';
-        this.updateStatusMessage('The game is waiting. Are you?');
+        this.updateStatusMessage('Surveillance system activated. Begin your hunt...');
         
-        console.log('🎮 Switched to game page');
+        console.log('📸 Switched to surveillance interface');
     }
 
     goToWelcomePage() {
@@ -190,7 +215,7 @@ class FindTheCoupleApp {
             if (window.gameIntegration) {
                 await window.gameIntegration.disconnectWallet();
             }
-            this.updateStatusMessage('Wallet disconnected. The couples await your return…');
+            this.updateStatusMessage('Agent disconnected. Surveillance targets remain undetected...');
             
             // Go back to welcome page after a delay
             setTimeout(() => {
@@ -207,7 +232,7 @@ class FindTheCoupleApp {
             this.stopGame();
         }
         
-        this.updateStatusMessage('You\'ve ended your session. Come back anytime to play again!');
+        this.updateStatusMessage('Surveillance operation terminated. Return when ready to resume hunt.');
         
         // Go back to welcome page after a delay
         setTimeout(() => {
@@ -231,7 +256,7 @@ class FindTheCoupleApp {
         }
         
         this.updateScore();
-        this.updateStatusMessage('Use your mouse to control the camera and find couples!');
+        this.updateStatusMessage('Surveillance camera active. Track targets and expose secret couples!');
         
         // Change start button to restart for next time
         const startBtn = document.getElementById('startGameBtn');
@@ -266,7 +291,7 @@ class FindTheCoupleApp {
 
     completeGame() {
         this.gameState.gameActive = false;
-        this.updateStatusMessage('🎉 Great job finding couples in the stadium!');
+        this.updateStatusMessage('🎯 MISSION ACCOMPLISHED! Secret couples exposed successfully!');
         
         // Record score
         this.recordScore();
@@ -415,7 +440,7 @@ class FindTheCoupleApp {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.findTheCoupleApp = new FindTheCoupleApp();
+    window.secretCoupleApp = new SecretCoupleApp();
 });
 
-export { FindTheCoupleApp };
+export { SecretCoupleApp };

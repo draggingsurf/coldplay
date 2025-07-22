@@ -370,7 +370,17 @@ function checkCapture() {
 
 // Update score display
 function updateScore() {
-    document.getElementById('score').textContent = `Solana: ${gameState.score}`;
+    // Update the in-game score display
+    const scoreElement = document.getElementById('score');
+    if (scoreElement) {
+        scoreElement.textContent = `EXPOSED: ${gameState.score}`;
+    }
+
+    // Update the header score display
+    const scoreDisplayElement = document.getElementById('scoreDisplay');
+    if (scoreDisplayElement) {
+        scoreDisplayElement.textContent = `TARGETS EXPOSED: ${gameState.score}`;
+    }
 }
 
 // Draw zoomed couple view inside camera frame
@@ -484,17 +494,24 @@ function drawJumbotronContent(ctx, x, y, width, height, padding, fontSize) {
             height - padding * 2
         );
 
-        ctx.fillStyle = '#FFD700';
+        // Create blinking effect based on time
+        const isBlinking = Math.floor(Date.now() / 300) % 2 === 0;
+
+        // Use red color for "TARGET FOUND" text with blinking effect
+        ctx.fillStyle = isBlinking ? '#FF0000' : '#FF6B6B';
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(
-            'You found the couple!',
+            'TARGET FOUND',
             x + width / 2,
             y + height / 2 - fontSize / 2
         );
+
+        // Add a secondary message in gold color
+        ctx.fillStyle = '#FFD700';
         ctx.fillText(
-            'Great!',
+            'MATCH DETECTED',
             x + width / 2,
             y + height / 2 + fontSize / 2
         );
@@ -570,9 +587,9 @@ function gameLoop() {
     if (images.cameraman.complete) {
         ctx.drawImage(images.cameraman, config.cameramanX, config.cameramanY, config.cameramanWidth, config.cameramanHeight);
 
-        // Position the camera screen on the left side where the cameraman is holding the camera
-        const cameraScreenX = config.cameramanX - 300;  // Adjusted to match the camera in your screenshot
-        const cameraScreenY = config.cameramanY + 180;  // Adjusted to match the camera in your screenshot
+        // Position the camera screen inside the camera that the cameraman is holding
+        const cameraScreenX = config.cameramanX + 150;  // Moved 50px to the right (60 + 50)
+        const cameraScreenY = config.cameramanY + 30; // Positioned inside the camera viewfinder
 
         // Draw content on camera's LCD screen (no border, smaller padding)
         drawJumbotronContent(
@@ -613,67 +630,67 @@ let currentGameSession = null;
 
 // Function to initialize game with a session
 function initializeWithSession(sessionId) {
-  currentGameSession = sessionId;
-  init(); // Your existing init function
+    currentGameSession = sessionId;
+    init(); // Your existing init function
 }
 
 // Override your existing checkCapture function
 const originalCheckCapture = checkCapture;
-checkCapture = function() {
-  const coupleRight = gameState.coupleX + config.coupleWidth;
-  const coupleBottom = gameState.coupleY + config.coupleHeight;
-  const cameraRight = gameState.cameraX + config.cameraWidth;
-  const cameraBottom = gameState.cameraY + config.cameraHeight;
+checkCapture = function () {
+    const coupleRight = gameState.coupleX + config.coupleWidth;
+    const coupleBottom = gameState.coupleY + config.coupleHeight;
+    const cameraRight = gameState.cameraX + config.cameraWidth;
+    const cameraBottom = gameState.cameraY + config.cameraHeight;
 
-  if (gameState.coupleX >= gameState.cameraX &&
-      gameState.coupleY >= gameState.cameraY &&
-      coupleRight <= cameraRight &&
-      coupleBottom <= cameraBottom) {
+    if (gameState.coupleX >= gameState.cameraX &&
+        gameState.coupleY >= gameState.cameraY &&
+        coupleRight <= cameraRight &&
+        coupleBottom <= cameraBottom) {
 
-      gameState.score += 10;
-      updateScore();
-      gameState.isCapturing = true;
-      
-      // Record in database
-      if (currentGameSession) {
-          recordCaptureInDB();
-      }
-      
-      showCaptureMessage = true;
-      clearTimeout(captureMessageTimer);
-      captureMessageTimer = setTimeout(() => {
-          showCaptureMessage = false;
-      }, 3000);
+        gameState.score += 10;
+        updateScore();
+        gameState.isCapturing = true;
 
-      setTimeout(() => {
-          randomizeCouplePosition();
-          gameState.isCapturing = false;
-      }, 500);
-  }
+        // Record in database
+        if (currentGameSession) {
+            recordCaptureInDB();
+        }
+
+        showCaptureMessage = true;
+        clearTimeout(captureMessageTimer);
+        captureMessageTimer = setTimeout(() => {
+            showCaptureMessage = false;
+        }, 3000);
+
+        setTimeout(() => {
+            randomizeCouplePosition();
+            gameState.isCapturing = false;
+        }, 500);
+    }
 };
 
 async function recordCaptureInDB() {
-  if (!currentGameSession) return;
-  
-  try {
-    const { supabase } = await import('./supabaseClient.js');
-    await supabase.rpc('record_capture', { session_uuid: currentGameSession });
-  } catch (err) {
-    console.error('Failed to record capture:', err);
-  }
+    if (!currentGameSession) return;
+
+    try {
+        const { supabase } = await import('./supabaseClient.js');
+        await supabase.rpc('record_capture', { session_uuid: currentGameSession });
+    } catch (err) {
+        console.error('Failed to record capture:', err);
+    }
 }
 
 window.gameAPI = {
-  initializeWithSession: initializeWithSession,
-  endGame: async function() {
-    if (currentGameSession) {
-      try {
-        const { supabase } = await import('./supabaseClient.js');
-        await supabase.rpc('end_game_session', { session_uuid: currentGameSession });
-        currentGameSession = null;
-      } catch (err) {
-        console.error('Failed to end game session:', err);
-      }
+    initializeWithSession: initializeWithSession,
+    endGame: async function () {
+        if (currentGameSession) {
+            try {
+                const { supabase } = await import('./supabaseClient.js');
+                await supabase.rpc('end_game_session', { session_uuid: currentGameSession });
+                currentGameSession = null;
+            } catch (err) {
+                console.error('Failed to end game session:', err);
+            }
+        }
     }
-  }
 };
